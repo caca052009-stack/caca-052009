@@ -7,18 +7,21 @@
 <style>
 body, html { margin:0; padding:0; height:100%; font-family:sans-serif; background:#1a1a2e; color:#fff; display:flex; justify-content:center; align-items:center; overflow:hidden; }
 #game { width:90%; max-width:500px; background:#fff0f5; color:#222; border-radius:12px; padding:20px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.5); }
-#hearts { font-size:24px; margin-bottom:10px; }
+#hearts { font-size:24px; margin-bottom:10px; transition: opacity 0.5s ease-in-out; }
 #anyaFace { width:200px; margin-bottom:20px; border-radius:12px; transition: all 0.5s ease-in-out; }
 #storyText { font-size:18px; margin-bottom:20px; min-height:140px; }
 #options { display:flex; flex-direction:column; gap:10px; }
 button.optionBtn { padding:10px; border:none; border-radius:8px; cursor:pointer; font-size:16px; background:#ff69b4; color:#fff; transition:0.2s; }
 button.optionBtn:hover { background:#ff1493; }
+#musicOverlay { position:fixed; inset:0; background:#000; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:24px; z-index:9999; }
 </style>
 </head>
 <body>
 
+<div id="musicOverlay">Klik layar untuk mulai musik 🎵</div>
+
 <div id="game">
-  <div id="hearts">💖💖💖</div>
+  <div id="hearts">💖</div>
   <img id="anyaFace" src="anya_neutral.png" alt="Anya">
   <div id="storyText"></div>
   <div id="options"></div>
@@ -28,7 +31,7 @@ button.optionBtn:hover { background:#ff1493; }
 
 <script>
 const anyaFaces = { happy:'anya_happy.png', neutral:'anya_neutral.png', angry:'anya_angry.png', sad:'anya_sad.png' };
-let hearts = 3;
+let hearts = 1; // hanya 1 hati
 let storyIndex = 0;
 let musicStarted = false;
 
@@ -60,17 +63,34 @@ const storyTextDiv = document.getElementById('storyText');
 const optionsDiv = document.getElementById('options');
 const heartsDiv = document.getElementById('hearts');
 const gameMusic = document.getElementById('gameMusic');
+const musicOverlay = document.getElementById('musicOverlay');
 
-function updateHearts(){ heartsDiv.innerHTML = '💖'.repeat(Math.max(hearts,0)); }
+function updateHearts(fade=false){
+  if(fade){
+    heartsDiv.style.opacity=0;
+    setTimeout(()=>{
+      heartsDiv.innerHTML = hearts>0?'💖':'💔';
+      heartsDiv.style.opacity=1;
+    },500);
+  } else {
+    heartsDiv.innerHTML = hearts>0?'💖':'💔';
+  }
+}
+
 function setAnyaFace(expr){ anyaImg.src = anyaFaces[expr]; }
 function shuffleOptions(options){ let arr = options.slice(); for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-
 function typeWriter(text, i=0, callback){
   if(i<text.length){
     storyTextDiv.innerHTML = text.substring(0,i+1);
     setTimeout(()=>typeWriter(text,i+1,callback),40);
   } else if(callback) callback();
 }
+
+musicOverlay.addEventListener('click', ()=>{
+  gameMusic.play().catch(()=>{});
+  musicStarted = true;
+  musicOverlay.style.display='none';
+});
 
 function renderStory(){
   if(storyIndex==='END'){
@@ -80,7 +100,6 @@ function renderStory(){
     setAnyaFace(hearts>0?'happy':'sad');
     return;
   }
-
   const current = story[storyIndex];
   setAnyaFace('neutral');
   let fullText = current.text.join("\n");
@@ -94,9 +113,9 @@ function renderStory(){
       btn.onclick = ()=>{
         hearts += opt.heartsChange;
         if(opt.heartsChange<0) setAnyaFace('angry'); else setAnyaFace('happy');
-        updateHearts();
+        hearts = hearts>0?1:0;
+        updateHearts(opt.heartsChange<0); // fade jika salah
         storyIndex = opt.next;
-        if(!musicStarted){ gameMusic.play().catch(()=>{}); musicStarted=true; }
         renderStory();
       };
       optionsDiv.appendChild(btn);
