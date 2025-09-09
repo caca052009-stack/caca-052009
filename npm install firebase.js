@@ -31,4 +31,10 @@ const firebaseConfig = {
   messagingSenderId: "539809994058",
   appId: "1:539809994058:web:8dc0a4866da32d284f1db3",
   measurementId: "G-YCCF3FXHWV"
+
+  id("com.android.application")
+id("com.google.gms.google-services")
+implementation(platform("com.google.firebase:firebase-bom:34.2.0"))
+implementation("com.google.firebase:firebase-analytics")
+
 };
