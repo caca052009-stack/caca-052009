@@ -3,117 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visual Novel Anya</title>
+<title>Kode Keras Anya Kepada Kamu</title>
 <style>
-  body { margin:0; padding:0; font-family:sans-serif; background:#ffe6f2; color:#222; display:flex; justify-content:center; align-items:center; height:100vh; }
-  #game { width:90%; max-width:500px; background:#fff0f5; border-radius:12px; padding:20px; box-shadow:0 4px 10px rgba(0,0,0,0.3); text-align:center; cursor:pointer; }
-  #hearts { font-size:24px; margin-bottom:10px; }
-  #anyaFace { width:200px; margin-bottom:20px; border-radius:12px; }
-  #storyText { font-size:18px; margin-bottom:20px; min-height:120px; }
-  #options { display:flex; flex-direction:column; gap:10px; }
-  button { padding:10px; border:none; border-radius:8px; cursor:pointer; font-size:16px; background:#ff69b4; color:#fff; transition:0.2s; }
-  button:hover { background:#ff1493; }
+body, html { margin:0; padding:0; height:100%; font-family:sans-serif; background:#1a1a2e; color:#fff; display:flex; justify-content:center; align-items:center; overflow:hidden; }
+#game { width:90%; max-width:500px; background:#fff0f5; color:#222; border-radius:12px; padding:20px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.5); }
+#hearts { font-size:24px; margin-bottom:10px; }
+#anyaFace { width:200px; margin-bottom:20px; border-radius:12px; transition: all 0.5s ease-in-out; }
+#storyText { font-size:18px; margin-bottom:20px; min-height:140px; }
+#options { display:flex; flex-direction:column; gap:10px; }
+button.optionBtn { padding:10px; border:none; border-radius:8px; cursor:pointer; font-size:16px; background:#ff69b4; color:#fff; transition:0.2s; }
+button.optionBtn:hover { background:#ff1493; }
 </style>
 </head>
 <body>
 
 <div id="game">
   <div id="hearts">💖💖💖</div>
-  <img id="anyaFace" src="" alt="Anya">
+  <img id="anyaFace" src="anya_neutral.png" alt="Anya">
   <div id="storyText"></div>
   <div id="options"></div>
-  <div style="font-size:14px; color:#888; margin-top:10px;">Klik di area game untuk memulai musik</div>
 </div>
 
-<!-- Musik Latar -->
 <audio id="gameMusic" src="cacani.mp3" loop></audio>
 
 <script>
-// Foto Anya sendiri
-const anyaFaces = {
-  happy: 'anya_happy.png',
-  neutral: 'anya_neutral.png',
-  angry: 'anya_angry.png',
-  sad: 'anya_sad.png'
-};
-
+const anyaFaces = { happy:'anya_happy.png', neutral:'anya_neutral.png', angry:'anya_angry.png', sad:'anya_sad.png' };
 let hearts = 3;
 let storyIndex = 0;
 let musicStarted = false;
 
 const story = [
-  { text:["Kamu melihat Anya duduk sendirian sambil makan kue favoritnya.","Kamu: 'Hai, boleh aku duduk di sini?'","Anya tersenyum malu dan mengangguk.","Kamu: 'Hari ini kelihatan ceria, ya… tapi mukamu kayak agak sedih tadi.'","Anya: 'Ah… nggak apa-apa sih, cuma capek sedikit.'"],
-    options:[{text:"Aku bisa nemenin kamu ngobrol biar nggak capek.",heartsChange:0,next:1},{text:"Hmm… ya udah, aku balik aja ke teman-temanku.",heartsChange:-1,next:1}] },
-  // ... masukkan semua scene lainnya sama seperti sebelumnya
+  { text:["Anya duduk sendiri di kelas.","Kamu: 'Hai, boleh duduk di sini?'","Anya tersenyum malu.","Kamu: 'Kamu kelihatan capek tadi.'","Anya: 'Ah… nggak apa-apa.'"],
+    options:[{text:"Aku bisa nemenin ngobrol biar nggak capek.", heartsChange:0,next:1},{text:"Aku balik aja ke teman-temanku.", heartsChange:-1,next:1}]},
+  { text:["Anya sedang memilih buku di perpustakaan.","Kamu: 'Buku itu bagus, aku suka juga.'","Anya tersenyum malu.","Kamu: 'Suka baca buku lain juga?'","Anya: 'Kadang, tapi aku suka ini.'"],
+    options:[{text:"Aku bisa bantu cariin buku seru.", heartsChange:0,next:2},{text:"Aku sih males ke perpustakaan, mending pulang.", heartsChange:-1,next:2}]},
+  { text:["Jam istirahat, berjalan di koridor.","Kamu: 'Mau ikut main bola?'","Anya terlihat ragu.","Kamu: 'Santai aja, main santai.'","Anya: 'Oke, aku ikut sebentar.'"],
+    options:[{text:"Seru kan main bareng teman-temanku?", heartsChange:0,next:3},{text:"Kenapa selalu sendirian sih?", heartsChange:-1,next:3}]},
+  { text:["Anya kesulitan soal matematika.","Kamu: 'Butuh bantuan? Aku jelasin.'","Anya: 'Boleh, aku bingung di soal terakhir.'","Kamu: 'Coba kita selesaikan bareng.'","Anya tersenyum lega."],
+    options:[{text:"Sama-sama, senang bisa bantu.", heartsChange:0,next:4},{text:"Kamu beneran nggak ngerti ya?", heartsChange:-1,next:4}]},
+  { text:["Anya memilih buku lain di rak.","Kamu: 'Buku itu bagus juga.'","Anya: 'Oh iya? Aku kira cuma aku yang suka.'","Kamu: 'Mau aku bantu cariin buku lain?'","Anya: 'Boleh, makasih.'"],
+    options:[{text:"Aku senang bisa bantu.", heartsChange:0,next:5},{text:"Aku sih males ikut ribet.", heartsChange:-1,next:5}]},
+  { text:["Guru meminta kalian kerja kelompok.","Kamu: 'Ayo kita kerjain bareng.'","Anya: 'Oke, tapi aku gugup.'","Kamu: 'Aku bantu, tenang.'","Anya tersenyum lebih percaya diri."],
+    options:[{text:"Kita pasti bisa selesai tepat waktu.", heartsChange:0,next:6},{text:"Kamu kerja aja, aku cuma lihat-lihat.", heartsChange:-1,next:6}]},
+  { text:["Sepulang sekolah, berjalan berdua.","Kamu: 'Mau aku antar pulang?'","Anya: 'Boleh, tapi jauh nggak apa-apa.'","Kamu: 'Santai aja, nggak jauh.'","Anya tersenyum malu."],
+    options:[{text:"Nanti kita bisa jalan lagi besok?", heartsChange:0,next:7},{text:"Aku buru-buru, maaf ya.", heartsChange:-1,next:7}]},
+  { text:["Mampir di toko snack.","Kamu: 'Aku traktir, pilih yang kamu suka.'","Anya: 'Serius? Makasih.'","Kamu: 'Senang lihat kamu senyum.'","Anya: tersenyum manis."],
+    options:[{text:"Aku senang kalau kamu senang.", heartsChange:0,next:8},{text:"Kamu beli sendiri aja, aku nggak mau.", heartsChange:-1,next:8}]},
+  { text:["Duduk di bangku taman.","Kamu: 'Hari ini seru banget, ya?'","Anya: 'Iya, aku senang jalan sama kamu.'","Kamu: 'Kamu selalu bikin aku senyum.'","Anya: 'Hahaha… kamu lucu.'"],
+    options:[{text:"Besok kita ketemu lagi?", heartsChange:0,next:9},{text:"Kamu terlalu cerewet, capek deh.", heartsChange:-1,next:9}]},
+  { text:["Hari mulai gelap, waktunya pulang.","Kamu: 'Aku antar sampai sini dulu ya.'","Anya tersenyum malu: 'Makasih, aku senang hari ini.'","Kamu: 'Besok kita ketemu lagi ya?'","Anya: 'Iya, aku tunggu.'"],
+    options:[{text:"Sampai besok, semoga harimu menyenangkan.", heartsChange:0,next:'END'},{text:"Yaudah, aku pulang duluan aja.", heartsChange:-1,next:'END'}]}
 ];
 
 const anyaImg = document.getElementById('anyaFace');
 const storyTextDiv = document.getElementById('storyText');
 const optionsDiv = document.getElementById('options');
 const heartsDiv = document.getElementById('hearts');
-const gameDiv = document.getElementById('game');
 const gameMusic = document.getElementById('gameMusic');
 
-function updateHearts(){
-  heartsDiv.innerHTML = '💖'.repeat(Math.max(hearts,0));
-}
+function updateHearts(){ heartsDiv.innerHTML = '💖'.repeat(Math.max(hearts,0)); }
+function setAnyaFace(expr){ anyaImg.src = anyaFaces[expr]; }
+function shuffleOptions(options){ let arr = options.slice(); for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
-function setAnyaFace(expr){
-  anyaImg.src = anyaFaces[expr];
-}
-
-function shuffleOptions(options){
-  let arr = options.slice();
-  for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-  return arr;
+function typeWriter(text, i=0, callback){
+  if(i<text.length){
+    storyTextDiv.innerHTML = text.substring(0,i+1);
+    setTimeout(()=>typeWriter(text,i+1,callback),40);
+  } else if(callback) callback();
 }
 
 function renderStory(){
   if(storyIndex==='END'){
-    storyTextDiv.innerHTML = hearts>0 ? "Anya tersenyum manis: 'Senang banget bisa jalan sama kamu hari ini 💖'" : "Anya terlihat kecewa: 'Kayaknya aku nggak cocok sama kamu… 😢'";
+    const endingText = hearts>0 ? "Anya tersenyum manis: 'Senang banget bisa jalan sama kamu hari ini 💖'" : "Anya terlihat kecewa: 'Kayaknya kamu kurang perhatian… 😢'";
+    typeWriter(endingText);
     optionsDiv.innerHTML='';
     setAnyaFace(hearts>0?'happy':'sad');
     return;
   }
-  const scene = story[storyIndex];
-  storyTextDiv.innerHTML = scene.text.join('<br>');
-  const shuffled = shuffleOptions(scene.options);
-  optionsDiv.innerHTML='';
-  shuffled.forEach((opt,i)=>{
-    const btn=document.createElement('button');
-    btn.textContent = opt.text;
-    btn.onclick=()=>chooseOption(opt);
-    optionsDiv.appendChild(btn);
-  });
+
+  const current = story[storyIndex];
   setAnyaFace('neutral');
+  let fullText = current.text.join("\n");
+  typeWriter(fullText,0,()=>{
+    const shuffled = shuffleOptions(current.options);
+    optionsDiv.innerHTML = '';
+    shuffled.forEach((opt)=>{
+      const btn = document.createElement('button');
+      btn.classList.add('optionBtn');
+      btn.innerText = opt.text;
+      btn.onclick = ()=>{
+        hearts += opt.heartsChange;
+        if(opt.heartsChange<0) setAnyaFace('angry'); else setAnyaFace('happy');
+        updateHearts();
+        storyIndex = opt.next;
+        if(!musicStarted){ gameMusic.play().catch(()=>{}); musicStarted=true; }
+        renderStory();
+      };
+      optionsDiv.appendChild(btn);
+    });
+  });
 }
-
-function chooseOption(opt){
-  hearts += opt.heartsChange;
-  if(opt.heartsChange<0 && hearts>0) setAnyaFace('angry');
-  else if(opt.heartsChange>=0) setAnyaFace('happy');
-  if(hearts<=0) {
-    hearts=0;
-    setAnyaFace('sad');
-    storyIndex='END';
-    renderStory();
-    return;
-  }
-  updateHearts();
-  storyIndex=opt.next;
-  renderStory();
-}
-
-// Mulai musik saat klik pertama kali di area game
-gameDiv.addEventListener('click', ()=>{
-  if(!musicStarted){
-    gameMusic.play().catch(()=>{});
-    musicStarted = true;
-  }
-}, {once:true});
 
 updateHearts();
 renderStory();
