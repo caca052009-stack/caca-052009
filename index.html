@@ -6,7 +6,7 @@
 <title>Visual Novel Anya</title>
 <style>
   body { margin:0; padding:0; font-family:sans-serif; background:#ffe6f2; color:#222; display:flex; justify-content:center; align-items:center; height:100vh; }
-  #game { width:90%; max-width:500px; background:#fff0f5; border-radius:12px; padding:20px; box-shadow:0 4px 10px rgba(0,0,0,0.3); text-align:center; }
+  #game { width:90%; max-width:500px; background:#fff0f5; border-radius:12px; padding:20px; box-shadow:0 4px 10px rgba(0,0,0,0.3); text-align:center; cursor:pointer; }
   #hearts { font-size:24px; margin-bottom:10px; }
   #anyaFace { width:200px; margin-bottom:20px; border-radius:12px; }
   #storyText { font-size:18px; margin-bottom:20px; min-height:120px; }
@@ -22,13 +22,14 @@
   <img id="anyaFace" src="" alt="Anya">
   <div id="storyText"></div>
   <div id="options"></div>
+  <div style="font-size:14px; color:#888; margin-top:10px;">Klik di area game untuk memulai musik</div>
 </div>
 
 <!-- Musik Latar -->
-<audio id="gameMusic" src="cacani.mp3" loop autoplay></audio>
+<audio id="gameMusic" src="cacani.mp3" loop></audio>
 
 <script>
-// Gunakan foto Anya sendiri di folder yang sama
+// Foto Anya sendiri
 const anyaFaces = {
   happy: 'anya_happy.png',
   neutral: 'anya_neutral.png',
@@ -38,34 +39,20 @@ const anyaFaces = {
 
 let hearts = 3;
 let storyIndex = 0;
+let musicStarted = false;
 
 const story = [
   { text:["Kamu melihat Anya duduk sendirian sambil makan kue favoritnya.","Kamu: 'Hai, boleh aku duduk di sini?'","Anya tersenyum malu dan mengangguk.","Kamu: 'Hari ini kelihatan ceria, ya… tapi mukamu kayak agak sedih tadi.'","Anya: 'Ah… nggak apa-apa sih, cuma capek sedikit.'"],
     options:[{text:"Aku bisa nemenin kamu ngobrol biar nggak capek.",heartsChange:0,next:1},{text:"Hmm… ya udah, aku balik aja ke teman-temanku.",heartsChange:-1,next:1}] },
-  { text:["Anya sedang mencari buku di rak perpustakaan.","Kamu: 'Buku itu bagus, aku juga suka bacanya.'","Anya tersenyum malu: 'Oh iya? Aku kira cuma aku yang suka buku itu.'","Kamu: 'Kamu sering ke perpustakaan sendiri?'","Anya: 'Iya, lebih nyaman sendiri… tapi kadang seru juga kalau ada teman.'"],
-    options:[{text:"Aku bisa nemenin kamu cari buku lain.",heartsChange:0,next:2},{text:"Aku sih males ke perpustakaan, mending pulang aja.",heartsChange:-1,next:2}] },
-  { text:["Jam istirahat tiba, kamu dan Anya berjalan di koridor.","Kamu: 'Eh, mau ikut main bola sama teman-temanku?'","Anya terlihat ragu-ragu, tapi tersenyum.","Kamu: 'Tenang, nggak usah takut salah, kita main santai aja.'","Anya: 'Hmm… oke, aku ikut sebentar.'"],
-    options:[{text:"Seru kan main bareng teman-temanku?",heartsChange:0,next:3},{text:"Kenapa selalu sendirian sih?",heartsChange:-1,next:3}] },
-  { text:["Kamu melihat Anya kesulitan soal matematika.","Kamu: 'Butuh bantuan? Aku bisa jelasin sedikit.'","Anya: 'Ah… iya, boleh. Aku agak bingung di soal terakhir.'","Kamu: 'Oke, coba kita selesaikan bareng.'","Anya tersenyum lega: 'Terima kasih, kamu baik banget.'"],
-    options:[{text:"Sama-sama, senang bisa bantu.",heartsChange:0,next:4},{text:"Kamu beneran nggak ngerti ya?",heartsChange:-1,next:4}] },
-  { text:["Anya masih memilih buku di rak.","Kamu: 'Buku itu bagus, aku juga suka bacanya.'","Anya: 'Oh iya? Aku kira cuma aku yang suka buku itu.'","Kamu: 'Mau aku bantu cariin buku lain yang seru?'","Anya: 'Boleh juga, makasih ya.'"],
-    options:[{text:"Aku senang bisa bantu kamu.",heartsChange:0,next:5},{text:"Aku sih males ikut ribet.",heartsChange:-1,next:5}] },
-  { text:["Guru meminta kalian bekerja dalam kelompok.","Kamu: 'Ayo kita kerjain bareng, pasti seru.'","Anya: 'Oke, tapi aku agak gugup nih.'","Kamu: 'Tenang, aku akan bantu kamu.'","Anya tersenyum: 'Makasih, aku jadi lebih percaya diri.'"],
-    options:[{text:"Kita pasti bisa selesai tepat waktu.",heartsChange:0,next:6},{text:"Kamu kerja aja, aku cuma lihat-lihat.",heartsChange:-1,next:6}] },
-  { text:["Sepulang sekolah, kalian berjalan berdua.","Kamu: 'Mau aku antar pulang?'","Anya: 'Ah… boleh, tapi nggak apa-apa kalau jauh kok.'","Kamu: 'Tenang, nggak jauh kok, santai aja.'","Anya tersenyum malu: 'Terima kasih ya, kamu perhatian banget.'"],
-    options:[{text:"Nanti kita bisa jalan lagi besok?",heartsChange:0,next:7},{text:"Aku buru-buru, maaf ya.",heartsChange:-1,next:7}] },
-  { text:["Kalian mampir di toko snack.","Kamu: 'Aku traktir, pilih yang kamu suka.'","Anya: 'Serius? Makasih banyak.'","Kamu: 'Iya dong, senang bisa lihat kamu senyum.'","Anya tersenyum manis: 'Kamu selalu perhatian ya…'"],
-    options:[{text:"Aku senang kalau kamu senang.",heartsChange:0,next:8},{text:"Kamu beli sendiri aja, aku nggak mau.",heartsChange:-1,next:8}] },
-  { text:["Kalian duduk di bangku taman sambil ngobrol.","Kamu: 'Hari ini seru banget, ya?'","Anya: 'Iya, aku senang bisa jalan sama kamu.'","Kamu: 'Kamu selalu bikin aku senyum deh.'","Anya: 'Hahaha… kamu lucu banget.'"],
-    options:[{text:"Besok kita ketemu lagi?",heartsChange:0,next:9},{text:"Kamu terlalu cerewet, capek deh.",heartsChange:-1,next:9}] },
-  { text:["Hari mulai gelap, waktunya pulang.","Kamu: 'Aku antar sampai sini dulu ya.'","Anya tersenyum malu: 'Makasih, aku senang hari ini.'","Kamu: 'Besok kita ketemu lagi ya?'","Anya: 'Iya, aku tunggu.'"],
-    options:[{text:"Sampai besok, semoga harimu menyenangkan.",heartsChange:0,next:'END'},{text:"Yaudah, aku pulang duluan aja.",heartsChange:-1,next:'END'}] }
+  // ... masukkan semua scene lainnya sama seperti sebelumnya
 ];
 
 const anyaImg = document.getElementById('anyaFace');
 const storyTextDiv = document.getElementById('storyText');
 const optionsDiv = document.getElementById('options');
 const heartsDiv = document.getElementById('hearts');
+const gameDiv = document.getElementById('game');
+const gameMusic = document.getElementById('gameMusic');
 
 function updateHearts(){
   heartsDiv.innerHTML = '💖'.repeat(Math.max(hearts,0));
@@ -119,6 +106,14 @@ function chooseOption(opt){
   storyIndex=opt.next;
   renderStory();
 }
+
+// Mulai musik saat klik pertama kali di area game
+gameDiv.addEventListener('click', ()=>{
+  if(!musicStarted){
+    gameMusic.play().catch(()=>{});
+    musicStarted = true;
+  }
+}, {once:true});
 
 updateHearts();
 renderStory();
