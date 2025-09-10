@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Jejak Hati: Kisah Anya dan Aku</title>
+<title>Jejak Hati: Kisah Anya dan Aku — Full VN</title>
 
 <!-- Font -->
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;font-family:var(--ui-font);color:var(--text);overflow:hidden}
 .container{position:relative;height:100vh;width:100vw;overflow:hidden}
-.background{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1}
+.background{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;transition:opacity 0.5s ease}
 .dialog-container{position:absolute;bottom:0;left:0;width:100%;background:rgba(0,0,0,0.7);padding:20px;color:#fff;backdrop-filter:blur(5px);border-top-left-radius:16px;border-top-right-radius:16px;transform:translateY(0);transition:transform 0.3s ease}
 .header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .title{font-family:var(--title-font);font-size:20px;color:#fff;margin:0}
@@ -28,12 +28,9 @@ html,body{height:100%;margin:0;font-family:var(--ui-font);color:var(--text);over
 .controls{display:flex;gap:10px;margin-top:12px;align-items:center}
 .nextBtn{padding:10px 14px;border-radius:10px;border:none;background:#673ab7;color:#fff;font-weight:700;cursor:pointer;display:none}
 .opts{margin-top:12px;display:flex;flex-direction:column;gap:10px}
-.opt-btn{font-family:var(--title-font);padding:12px;border-radius:12px;border:none;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#fff;font-weight:700;cursor:pointer;text-align:left}
+.opt-btn{font-family:var(--title-font);padding:12px;border-radius:12px;border:none;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#fff;font-weight:700;cursor:pointer;text-align:left;transition:transform 0.2s ease, opacity 0.2s ease}
 .opt-btn:hover{transform:translateY(-3px)}
 .small{font-size:13px;color:#aaa;margin-top:8px}
-.progress{width:100%;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;margin-top:10px}
-.progress-bar{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
-.chapter-indicator{font-size:12px;color:#ccc;margin-bottom:5px}
 
 /* overlay to start music */
 #overlay{position:fixed;inset:0;background:rgba(10,10,10,0.88);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:pointer}
@@ -45,6 +42,7 @@ html,body{height:100%;margin:0;font-family:var(--ui-font);color:var(--text);over
 @media(max-width:780px){
   .dialog-container{padding:15px}
   .story{font-size:15px;min-height:70px}
+  .title{font-size:18px}
 }
 
 /* Animation for text cursor */
@@ -73,7 +71,7 @@ html,body{height:100%;margin:0;font-family:var(--ui-font);color:var(--text);over
   border-radius: 5px;
   font-size: 12px;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s ease;
 }
 .save-indicator.show {
   opacity: 1;
@@ -89,20 +87,20 @@ html,body{height:100%;margin:0;font-family:var(--ui-font);color:var(--text);over
 <div id="overlay">
   <div class="box">
     <h2>JEJAK HATI: KISAH ANYA DAN AKU</h2>
-    <p>Kembali ke masa SMA, temui Anya yang pendiam dan pintar. Bangun hubungan dari pertemanan hingga sesuatu yang lebih, dan hadapi konsekuensi dari setiap pilihanmu.</p>
+    <p>Kamu diberi kesempatan kembali ke masa lalu untuk memperbaiki hubungan dengan Anya. Klik 'Mulai' atau ketuk layar untuk mulai musik dan permainan.</p>
     <button id="startBtn" style="padding:10px 14px;border-radius:10px;border:none;background:#ff69b4;color:#fff;font-weight:700;cursor:pointer">Mulai</button>
   </div>
 </div>
 
+<!-- Save indicator -->
+<div class="save-indicator" id="saveIndicator">Progress tersimpan</div>
+
 <div class="container">
   <div class="dialog-container">
     <div class="header">
-      <h1 class="title">Jejak Hati: Kisah Anya dan Aku</h1>
+      <h1 class="title">Jejak Hati — Kisah Anya dan Aku</h1>
       <div class="heart" id="heart">💖</div>
     </div>
-
-    <div class="chapter-indicator" id="chapterIndicator">Chapter 1/30</div>
-    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
 
     <div class="char" id="charName">Anya</div>
 
@@ -117,11 +115,9 @@ html,body{height:100%;margin:0;font-family:var(--ui-font);color:var(--text);over
     <!-- option buttons appear here after pre-dialog finished -->
     <div id="options" class="opts"></div>
 
-    <div class="small">Tip: ketuk area teks atau tombol <strong>Lanjut</strong> setelah teks selesai. Pilih jawaban yang tulus — pilihan salah bisa berakibat fatal.</div>
+    <div class="small">Tip: ketuk area teks atau tombol <strong>Lanjut</strong> setelah teks selesai. Pilih jawaban yang tulus — satu salah → Game Over.</div>
   </div>
 </div>
-
-<div id="saveIndicator" class="save-indicator">Progress tersimpan</div>
 
 <!-- optional music -->
 <audio id="bgMusic" src="cacani.mp3" loop></audio>
@@ -132,205 +128,243 @@ html,body{height:100%;margin:0;font-family:var(--ui-font);color:var(--text);over
 const scenes = {
   1: {
     pre:[
-      "Hari pertama sekolah di SMA Bina Bangsa. Aku masuk kelas dengan perasaan campur aduk.",
-      "Ruangan ramai dengan siswa-siswa baru yang saling mengenal. Mataku tertarik pada seorang gadis dengan rambut soft-pink yang duduk sendirian di pojok.",
-      "Dia terlihat pendiam, asyik dengan buku catatannya. Itulah Anya.",
-      "Guru memintaku memperkenalkan diri. Setelah selesai, aku memutuskan untuk mendekatinya."
+      "Kamu terbangun dan agak melongo — ini terasa seperti kembali ke masa SMA.",
+      "Kelas penuh suara: bisik, tawa, notifikasi. Di pojok, cewek rambut soft-pink lagi doodle — Anya.",
+      "Dia menoleh, senyum kecil. Mata kalian sempat bertemu.",
+      "Anya: \"Eh, kamu anak baru ya? Kok aku baru liat?\"",
+      "Kamu: \"Iya nih, agak nervous tapi excited.\""
     ],
     options:[
-      { text:"\"Hai, aku baru di sini. Boleh aku duduk di sebelahmu?\"",
+      { text:"“Boleh nggak aku duduk di sini? Biar gampang kenalan.”",
         result:[
-          "Anya mengangkat kepalanya, terlihat sedikit terkejut.",
-          "Anya: \"Oh, iya... silakan. Aku Anya.\"",
-          "Kesan pertama: dia pendiam tapi ramah."
+          "Anya: \"Boleh dong, hati-hati ya jangan ganggu catetanku hehe.\"",
+          "Kamu duduk, kalian mulai ngobrol ringan soal kelas dan anime yang lagi hits.",
+          "Dia tertawa beberapa kali karena candaanmu, suasana jadi hangat."
         ], correct:true, next:2 },
-      { text:"Diam saja dan duduk di tempat lain",
+      { text:"“Males kenalan, mending aku sendiri aja.”",
         result:[
-          "Aku memilih duduk di bangku yang kosong di barisan depan.",
-          "Dari belakang, aku masih bisa melihat Anya yang asyik dengan bukunya.",
-          "Mungkin lain kali ada kesempatan untuk mengenalnya."
-        ], correct:false, next:2 },
-      { text:"\"Wah, rambutmu warna pink ya? Keren!\"",
+          "Anya: \"Oh yaudah, kalau gitu.\"",
+          "Wajahnya berubah dingin, dia balik ngelanjutin catetan."
+        ], correct:false, next:'GAMEOVER' },
+      { text:"“Ssst… aku stalking IG kamu, followers-mu banyak.”",
         result:[
-          "Anya: \"Eh... makasih.\"",
-          "Dia terlihat sedikit tidak nyaman dan kembali fke buku catatannya.",
-          "Sepertinya dia tidak suka diperhatikan berlebihan."
-        ], correct:false, next:2 }
+          "Anya: \"Eh? Kok stalking? Itu creepy banget loh.\"",
+          "Dia langsung manyun, suasana awkward."
+        ], correct:false, next:'GAMEOVER' }
     ]
   },
 
   2: {
     pre:[
-      "Hari kedua sekolah. Aku melihat Anya lagi di perpustakaan saat jam istirahat.",
-      "Dia sedang membaca buku yang cukup tebal. Aku penasaran buku apa yang dibacanya.",
-      "Aku mendekatinya pelan-pelan."
+      "Kamu duduk di samping Anya. Guru belum masuk, jam masih santai.",
+      "Anya: \"Lu suka anime gak? Mana favorit lu?\"",
+      "Kamu: \"Suka, Spy x Family favorit. Lucu tapi hangat.\""
     ],
     options:[
-      { text:"\"Buku apa yang kamu baca? Kelihatan menarik.\"",
+      { text:"“Spy x Family! Sama, Anya juga suka!”",
         result:[
-          "Anya: \"Ini novel fantasi. Ceritanya tentang...\"",
-          "Dia menjelaskan dengan antusias. Rupanya dia sangat suka membaca.",
-          "Kita mengobrol sebentar tentang buku sebelum bel berbunyi."
+          "Anya: \"Ih serius? Keren juga, kita match deh.\"",
+          "Kalian bahas karakter favorit, obrolan jadi cair."
         ], correct:true, next:3 },
-      { text:"Diam-diam mengamatinya dari jauh",
+      { text:"“Anime? Cuma nonton 5 menit doang sih.”",
         result:[
-          "Aku hanya mengamati dari kejauhan. Anya terlihat sangat fokus membacanya.",
-          "Sepertinya dia tidak menyadari kehadiranku.",
-          "Akhirnya aku memutuskan pergi tanpa berbicara dengannya."
-        ], correct:false, next:3 },
-      { text:"\"Wah, anak rajin ya, istirahat masih baca buku.\"",
+          "Anya: \"Wah bukan fans beneran dong…\""
+        ], correct:false, next:'GAMEOVER' },
+      { text:"“Anime? Itu buat bocah.”",
         result:[
-          "Anya: \"Hmm... memangnya kenapa?\"",
-          "Dia terlihat sedikit tersinggung dengan komentarku.",
-          "Aku segera meralat ucapanku dan meminta maaf."
-        ], correct:false, next:3 }
+          "Anya: \"Masa? Aku agak tersinggung nih.\""
+        ], correct:false, next:'GAMEOVER' }
     ]
   },
 
   3: {
     pre:[
-      "Beberapa hari telah berlalu. Aku memperhatikan bahwa Anya sering sendiri.",
-      "Di kelas matematika, guru memberikan soal yang cukup sulit. Kebanyakan siswa mengeluh.",
-      "Tapi aku melihat Anya menyelesaikannya dengan cepat dan tepat.",
-      "Waktu istirahat, aku mendekatinya untuk membahas soal itu."
+      "Bel berbunyi sebentar. Di papan ada PR Matematika yang ninggal.",
+      "Anya: \"Gw stuck di nomor 3 nih, pusing deh.\"",
+      "Kamu buka buku, ngeliatin soal sambil tarik napas."
     ],
     options:[
-      { text:"\"Wah, kamu jago matematika ya. Bisa bantu aku?\"",
+      { text:"\"Santai, aku jelasin pelan—kita selesaiin bareng.\"",
         result:[
-          "Anya: \"Iya, boleh. Soal tadi memang agak tricky.\"",
-          "Dia dengan sabar menjelaskan cara menyelesaikan soal tersebut.",
-          "Aku semakin terkesan dengan kecerdasannya."
+          "Kamu jelasin langkah-langkah dengan sabar, sambil gambar di buku.",
+          "Anya: \"Wah jadi ngerti! Makasih ya — kamu keren.\"",
+          "Kalian saling senyum, feel jadi lebih deket."
         ], correct:true, next:4 },
-      { text:"\"Kayaknya gurunya memberi soal terlalu susah ya?\"",
+      { text:"\"Tanya guru aja ntar, santai.\"",
         result:[
-          "Anya: \"Menurutku wajar saja. Kita harus belajar lebih keras.\"",
-          "Dia menjawab dengan serius. Sepertinya dia tipe yang tidak suka mengeluh."
-        ], correct:false, next:4 },
-      { text:"Pura-pura tidak memperhatikan dan pergi",
+          "Anya: \"Tapi aku pengen ngerti sekarang...\""
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Nyontek aja besok, gampang.\"",
         result:[
-          "Aku memutuskan untuk tidak mengganggunya.",
-          "Tapi kemudian Anya justru yang mendekatiku dan menawarkan bantuan.",
-          "Anya: \"Kamu kesulitan dengan soal tadi? Aku bisa bantu kalau mau.\""
-        ], correct:false, next:4 }
+          "Anya: \"Nggak deh, aku gak nyaman gitu.\""
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Gini doang kok susah.\"",
+        result:[
+          "Anya: \"Jangan meremehkan aku dong.\""
+        ], correct:false, next:'GAMEOVER' }
     ]
   },
 
-  // Scene 4-30 akan mengikuti pola yang sama, mengikuti alur cerita dari outline
-  // Karena keterbatasan ruang, saya akan menambahkan beberapa scene penting saja
-
   4: {
     pre:[
-      "Minggu-minggu berikutnya, aku dan Anya mulai sering berinteraksi.",
-      "Kita sering belajar bersama di perpustakaan setelah sekolah.",
-      "Hari ini, Anya terlihat sedikit murung. Matanya merah seperti baru menangis.",
-      "Aku mendekatinya dengan hati-hati."
+      "PR beres, kelas santai. Kamu mencoba lempar jokes receh buat nge-break mood.",
+      "Kamu: \"Tau gak bedanya kamu sama sinyal?\"",
+      "Anya: \"Apa tuh?\""
     ],
     options:[
-      { text:"\"Kamu baik-baik saja? Ada yang bisa aku bantu?\"",
+      { text:"\"Sinyal suka hilang, tapi kamu bikin aku loss in thought.\" (gombal receh)",
         result:[
-          "Anya: \"Aku... ada masalah kecil dengan teman sekelasku.\"",
-          "Dia bercerita tentang beberapa siswa yang mengolok-oloknya karena pendiam.",
-          "Aku mendengarkan dengan penuh perhatian dan menghiburnya."
+          "Anya: \"Aduh gombal—tapi lucu juga sih.\"",
+          "Kalian ketawa bareng, dia sering menatap waktu kamu bicara."
         ], correct:true, next:5 },
-      { text:"Pura-pura tidak melihat dan langsung belajar",
+      { text:"\"Nggak ada, semua sama aja.\"",
         result:[
-          "Aku memilih untuk tidak mencampuri urusannya.",
-          "Tapi kemudian Anya mendekatiku dan bertanya apakah ada yang salah.",
-          "Anya: \"Kamu kenapa? Kok tidak seperti biasanya?\""
-        ], correct:false, next:5 },
-      { text:"\"Jangan murung terus, nanti cepat tua lho!\"",
+          "Anya: \"Kok kamu pasif, boring deh.\""
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Ntar gue bilang ke temen kalo kamu awkward.\"",
         result:[
-          "Anya: \"Aku tidak murung-murung amat!\"",
-          "Dia terlihat kesal dengan candaanku yang tidak tepat waktu.",
-          "Aku menyadari kesalahanku dan meminta maaf."
-        ], correct:false, next:5 }
+          "Anya: \"Eh jangan ngomong gitu dong.\""
+        ], correct:false, next:'GAMEOVER' }
     ]
   },
 
   5: {
     pre:[
-      "Keesokan harinya, aku melihat beberapa siswa mengganggu Anya di koridor.",
-      "Mereka mengambil buku darinya dan melemparkannya ke sana kemari.",
-      "Anya terlihat sangat tidak nyaman dan mencoba mengambil bukunya kembali."
+      "Jam hampir pulang. Anya beresin tas pelan, mukanya adem tapi ada ragu.",
+      "Anya melirik: \"Kamu mau kemana setelah ini?\""
     ],
     options:[
-      { text:"Langsung menegur mereka dan membela Anya",
+      { text:"\"Mau pulang bareng? Kita mampir kantin bentar.\"",
         result:[
-          "Aku: \"Hey, kembalikan bukunya! Jangan ganggu dia!\"",
-          "Mereka terkejut lalu pergi sambil tertawa. Anya mengambil bukunya.",
-          "Anya: \"Terima kasih...\" Matanya berkaca-kaca."
+          "Anya: \"Mau dong, makasih ya — jadi nggak sepi pulang.\"",
+          "Kamu merasa deg-degan tapi bahagia."
         ], correct:true, next:6 },
-      { text:"Melaporkan pada guru",
+      { text:"\"Aku buru-buru, pulang sendiri aja.\"",
         result:[
-          "Aku segera pergi ke ruang guru dan melaporkan kejadian itu.",
-          "Guru datang dan menegur para siswa tersebut.",
-          "Anya: \"Kamu yang melaporkan? Terima kasih...\""
-        ], correct:true, next:6 },
-      { text:"Pura-pura tidak melihat dan lanjut berjalan",
+          "Anya: \"Oh yaudah...\" (senyum pudar)"
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Gue ada janji, maaf nggak bisa.\"",
         result:[
-          "Aku memilih untuk tidak ikut campur, takut menjadi sasaran berikutnya.",
-          "Tapi kemudian aku menyesal melihat Anya harus menghadapi sendiri.",
-          "Esok harinya, Anya menghindariku dan terlihat kecewa."
+          "Anya: \"Kalau gitu yaudahlah.\""
         ], correct:false, next:'GAMEOVER' }
     ]
   },
 
-  // Scene-scene berikutnya akan terus berkembang sesuai outline
-  // ...
-
-  30: {
+  /* Outside scenes */
+  6: {
     pre:[
-      "Sudah satu semester kita bersahabat. Hubungan kita semakin dekat.",
-      "Anya sudah lebih terbuka dan percaya padaku. Dia sering bercerita tentang keluarganya dan mimpinya.",
-      "Hari ini, kita berjalan pulang bersama seperti biasa.",
-      "Tiba-tiba Anya berhenti dan menatapku serius.",
-      "Anya: \"Aku... senang sekali punya teman sepertimu.\""
+      "Di kantin, bau gorengan dan suara pedagang bikin perut protes.",
+      "Anya: \"Mau makan apa nih? Aku bingung.\"",
+      "Kamu: \"Ayo pilih, gue traktir. Pilih yang kamu suka.\""
     ],
     options:[
-      { text:"\"Aku juga senang bisa dekat denganmu, Anya.\"",
+      { text:"\"Seblak level sedang aja, biar pas.\"",
         result:[
-          "Anya tersenyum manis. Matanya berbinar-binar.",
-          "Anya: \"Terima kasih sudah selalu ada untukku.\"",
-          "Kita melanjutkan perjalanan dengan perasaan hangat."
-        ], correct:true, next:31 },
-      { text:"\"Iya, sama-sama. Teman ya teman.\"",
+          "Anya: \"Kok kamu tau selera aku? Keren.\"",
+          "Kalian pesan dan duduk, obrolan santai berlanjut."
+        ], correct:true, next:7 },
+      { text:"\"Ambil es teh aja, yang manis stabil.\"",
         result:[
-          "Ekspresi Anya sedikit redup mendengar jawabanku.",
-          "Anya: \"Iya... teman.\"",
-          "Dia terdiam sepanjang perjalanan pulang."
-        ], correct:false, next:31 },
-      { text:"\"Aku... sebenarnya lebih dari sekedar ingin menjadi temanmu.\"",
+          "Anya: \"Es teh juga enak sih... tapi aku lagi pengen pedes.\""
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Gue nggak beliin, kamu aja yang bayar.\"",
         result:[
-          "Anya terkejut, pipinya memerah.",
-          "Anya: \"A-aku... harus pulang dulu!\"",
-          "Dia berlari meninggalkanmu, terlihat grogi dan bingung."
-        ], correct:false, next:31 }
+          "Anya: \"Serius? Kok pelit sih.\""
+        ], correct:false, next:'GAMEOVER' }
     ]
   },
 
-  // Scene 31-50 (Bagian 2: Awal Romansa) akan ditambahkan kemudian
-  // ...
-
-  // Akhir dari Bagian 1
-  GAMEOVER: {
-    pre: [
-      "Kamu gagal membangun hubungan dengan Anya.",
-      "Dia memutuskan untuk menjauh dan hubungan kalian tidak pernah menjadi lebih dekat.",
-      "Misi masa lalu gagal."
+  7: {
+    pre:[
+      "Makan sambil ngobrol tentang film, cita-cita, dan meme konyol.",
+      "Anya: \"Kamu tipe yang romantis nggak sih?\"",
+      "Kamu: \"Tergantung sama siapa.\""
     ],
-    options: [
-      { text: "Mulai Ulang", result: [], correct: true, next: 1 }
+    options:[
+      { text:"\"Kalau sama kamu, aku bakal perhatian banget.\"",
+        result:[
+          "Anya: \"Aduh baper nih, tapi lucu juga.\"",
+          "Ia cerita hal kecil yang bikin dia nyaman."
+        ], correct:true, next:8 },
+      { text:"\"Romantis? Gue kayak ghost, nggak keliatan.\"",
+        result:[
+          "Anya: \"Ghost? Maksudnya apa sih?\""
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Romantis? Hanya ke makanan.\"",
+        result:[
+          "Anya: \"Wah kamu aneh banget.\""
+        ], correct:false, next:'GAMEOVER' }
     ]
   },
 
-  END: {
-    pre: [
-      "Selamat! Kamu berhasil melewati Bagian 1 dari cerita ini.",
-      "Kamu dan Anya sekarang memiliki hubungan yang dekat dan saling percaya.",
-      "Lanjutkan ke Bagian 2: Awal Romansa di update berikutnya!"
+  8: {
+    pre:[
+      "Tiba² hujan turun deras. Semua cari tempat teduh, suasana jadi dramatis.",
+      "Anya: \"Gila nggak bawa payung!\"",
+      "Kamu: \"Tenang, pakai payung gue aja.\""
     ],
-    options: [
-      { text: "Main Lagi", result: [], correct: true, next: 1 }
+    options:[
+      { text:"\"Ayo pakai payung gue, berdua aja.\"",
+        result:[
+          "Kalian berdempetan di bawah payung, hujan jadi latar romantis.",
+          "Anya: \"Sempit tapi hangat...\" (tersipu)."
+        ], correct:true, next:9 },
+      { text:"\"Lari aja basah, biar dramatis.\"",
+        result:[
+          "Anya: \"Tapi nanti bisa sakit tau.\""
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Tunggu aja sampai reda.\"",
+        result:[
+          "Anya: \"Tapi nggak nyaman kalo kebasahan.\""
+        ], correct:false, next:'GAMEOVER' }
+    ]
+  },
+
+  9: {
+    pre:[
+      "Hujan reda. Kalian duduk di taman, aroma tanah basah bikin adem.",
+      "Anya: \"Makasih ya udah nemenin dari siang.\"",
+      "Kamu: \"Sama-sama, aku malah seneng.\""
+    ],
+    options:[
+      { text:"\"Boleh gak aku jemput kamu besok? Biar bisa nongkrong lagi.\"",
+        result:[
+          "Anya: \"Boleh banget! Aku jadi nggak sabar.\"",
+          "Rasa nyaman antar kalian makin jelas."
+        ], correct:true, next:10 },
+      { text:"\"Mending jangan sering-sering deh, capek.\"",
+        result:[
+          "Anya: \"Kenapa sih kamu dingin banget?\""
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Semuanya cuma buat lucu-lucuan doang.\"",
+        result:[
+          "Anya: \"Jadi semua ini iseng?\""
+        ], correct:false, next:'GAMEOVER' }
+    ]
+  },
+
+  10: {
+    pre:[
+      "Senja oranye turun. Kalian duduk di bangku taman, suasana hening dan hangat.",
+      "Anya memandang: \"Kamu... suka aku nggak sih?\"",
+      "Jantungmu kencang—ini momen."
+    ],
+    options:[
+      { text:"\"Aku suka banget, mau jagain kamu tiap hari?\"",
+        result:[
+          "Anya menunduk sebentar, lalu tersenyum lebar: \"Iya... aku mau juga.\"",
+          "Kamu lega — misi masa lalu berhasil."
+        ], correct:true, next:'END' },
+      { text:"\"Ah nggak lah, cuma bercanda.\"",
+        result:[
+          "Anya: \"Apa? Jadi semua ini mainan?\"",
+          "Dia sedih, suasana retak."
+        ], correct:false, next:'GAMEOVER' },
+      { text:"\"Kita jadi temen dulu aja deh.\"",
+        result:[
+          "Anya: \"Oh... yaudahlah kalau kamu mau.\"",
+          "Kalau begitu kamu nggak dapet Happy Ending kali ini."
+        ], correct:false, next:'GAMEOVER' }
     ]
   }
 }; // end scenes
@@ -345,59 +379,32 @@ const startBtn = document.getElementById('startBtn');
 const nextBtn = document.getElementById('nextBtn');
 const bgMusic = document.getElementById('bgMusic');
 const backgroundEl = document.getElementById('background');
-const progressBar = document.getElementById('progressBar');
-const chapterIndicator = document.getElementById('chapterIndicator');
 const saveIndicator = document.getElementById('saveIndicator');
 
-let sceneIndex = 1;       // current scene number
+let sceneIndex = 1;       // current scene number 1..10
 let preIndex = 0;         // which pre-line are we on
 let resultMode = false;   // showing result lines after choice
 let resultIndex = 0;      // index into result lines
 let currentOptions = [];  // options for current scene (shuffled)
 let typing = false;       // whether typewriter is running
 let currentOpt = null;    // currently selected option
-let playerName = "Kamu";  // default player name
+let typeSpeed = 24;       // typing speed in ms
 
 /* Helper: set background image based on emotion */
 function setBackground(state){
-  const map = { neutral:'anya_neutral.png', happy:'anya_happy.png', angry:'anya_angry.png', sad:'anya_sad.png' };
-  backgroundEl.src = map[state] || map.neutral;
-}
-
-/* Update progress bar and chapter indicator */
-function updateProgress() {
-  const totalScenes = 30; // Total scenes in Part 1
-  const progress = (sceneIndex / totalScenes) * 100;
-  progressBar.style.width = `${progress}%`;
-  chapterIndicator.textContent = `Chapter ${sceneIndex}/30`;
-}
-
-/* Show save indicator */
-function showSaveIndicator() {
-  saveIndicator.classList.add('show');
-  setTimeout(() => {
-    saveIndicator.classList.remove('show');
-  }, 2000);
-}
-
-/* Save game progress to localStorage */
-function saveGame() {
-  const saveData = {
-    sceneIndex,
-    preIndex,
-    timestamp: Date.now()
+  const map = { 
+    neutral:'anya_neutral.png', 
+    happy:'anya_happy.png', 
+    angry:'anya_angry.png', 
+    sad:'anya_sad.png',
+    shy:'anya_shy.png',
+    surprised:'anya_surprised.png'
   };
-  localStorage.setItem('jejakHati_save', JSON.stringify(saveData));
-  showSaveIndicator();
-}
-
-/* Load game progress from localStorage */
-function loadGame() {
-  const saveData = localStorage.getItem('jejakHati_save');
-  if (saveData) {
-    return JSON.parse(saveData);
-  }
-  return null;
+  backgroundEl.style.opacity = 0;
+  setTimeout(() => {
+    backgroundEl.src = map[state] || map.neutral;
+    backgroundEl.style.opacity = 1;
+  }, 300);
 }
 
 /* escape */
@@ -411,7 +418,7 @@ function typeWriterSingle(text, cb){
   function step(){
     i++;
     storyEl.innerHTML = esc(text.slice(0,i)).replace(/\n/g,'<br>') + '<span class="text-cursor"></span>';
-    if(i < text.length) setTimeout(step, 24);
+    if(i < text.length) setTimeout(step, typeSpeed);
     else { 
       typing=false; 
       storyEl.innerHTML = esc(text).replace(/\n/g,'<br>');
@@ -419,6 +426,38 @@ function typeWriterSingle(text, cb){
     }
   }
   step();
+}
+
+/* Save game progress */
+function saveProgress() {
+  const progress = {
+    sceneIndex,
+    preIndex,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('anyaGameProgress', JSON.stringify(progress));
+  
+  // Show save indicator
+  saveIndicator.classList.add('show');
+  setTimeout(() => {
+    saveIndicator.classList.remove('show');
+  }, 2000);
+}
+
+/* Load game progress */
+function loadProgress() {
+  const saved = localStorage.getItem('anyaGameProgress');
+  if (saved) {
+    try {
+      const progress = JSON.parse(saved);
+      sceneIndex = progress.sceneIndex;
+      preIndex = progress.preIndex;
+      return true;
+    } catch (e) {
+      console.error('Error loading progress:', e);
+    }
+  }
+  return false;
 }
 
 /* Render pre-lines of a scene sequentially. After each pre-line finishes, show Next button (or allow tapping) to continue. When all pre-lines done, show options. */
@@ -431,11 +470,10 @@ function startScene(index){
   currentOpt = null;
   setBackground('neutral');
   optsEl.innerHTML = '';
-  updateProgress();
-  
   const sc = scenes[sceneIndex];
   charNameEl.textContent = 'Anya';
   showNextPreLine(sc);
+  saveProgress();
 }
 
 /* Show pre-line at preIndex */
@@ -453,8 +491,7 @@ function showNextPreLine(scene){
   typeWriterSingle(lines[preIndex], ()=>{
     // after typing finishes, show Next button
     nextBtn.style.display = 'inline-block';
-    // Auto-save after each dialogue
-    saveGame();
+    saveProgress();
   });
 }
 
@@ -507,8 +544,6 @@ function showResultLine(opt){
   nextBtn.style.display = 'none';
   typeWriterSingle(res[resultIndex], ()=> {
     nextBtn.style.display = 'inline-block';
-    // Auto-save after each result
-    saveGame();
   });
 }
 
@@ -517,7 +552,7 @@ function doGameOver(){
   heartEl.textContent = '💔';
   setBackground('sad');
   optsEl.innerHTML = '';
-  const lines = ["GAME OVER — Hubungan dengan Anya tidak bisa diselamatkan 😢", "Kalau mau coba lagi, tekan Mulai Ulang."];
+  const lines = ["GAME OVER — Anya kecewa 😢", "Kalau mau coba lagi, tekan Mulai Ulang."];
   let i = 0;
   function showLine(){
     if(i >= lines.length) {
@@ -525,4 +560,19 @@ function doGameOver(){
       const btn = document.createElement('button');
       btn.className = 'opt-btn';
       btn.textContent = 'Mulai Ulang';
+      btn.onclick = restartGame;
+      optsEl.appendChild(btn);
+      return;
+    }
+    typeWriterSingle(lines[i], ()=>{
+      i++;
+      nextBtn.style.display = 'inline-block';
+    });
+  }
+  // start the gameover sequence
+  storyEl.innerHTML = '';
+  nextBtn.style.display = 'none';
+  // override nextBtn to continue lines
+  nextBtn.onclick = ()=>{
+    nextBtn.style.display='none';
     
