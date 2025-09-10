@@ -1,131 +1,528 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kode Keras Anya Kepada Kamu</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kode Keras Anya — Misi Masa Lalu (Gen Z)</title>
+
+<!-- Font -->
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
-body, html { margin:0; padding:0; height:100%; font-family:sans-serif; background:#1a1a2e; color:#fff; display:flex; justify-content:center; align-items:center; overflow:hidden; }
-#game { width:90%; max-width:500px; background:#fff0f5; color:#222; border-radius:12px; padding:20px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.5); }
-#hearts { font-size:24px; margin-bottom:10px; transition: opacity 0.5s ease-in-out; }
-#anyaFace { width:200px; margin-bottom:20px; border-radius:12px; transition: all 0.5s ease-in-out; }
-#storyText { font-size:18px; margin-bottom:20px; min-height:140px; }
-#options { display:flex; flex-direction:column; gap:10px; }
-button.optionBtn { padding:10px; border:none; border-radius:8px; cursor:pointer; font-size:16px; background:#ff69b4; color:#fff; transition:0.2s; }
-button.optionBtn:hover { background:#ff1493; }
-#musicOverlay { position:fixed; inset:0; background:#000; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:24px; z-index:9999; }
+:root{
+  --title-font:"Baloo 2", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  --ui-font:"Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  --accent:#ff69b4; --accent2:#ff3a86;
+  --bg:#f7eef7; --card:#fff; --text:#111;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:var(--ui-font);background:linear-gradient(135deg,#ffeef8,#fff);color:var(--text)}
+.container{max-width:760px;margin:30px auto;padding:18px}
+.card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,0.08);overflow:hidden}
+.header{display:flex;align-items:center;gap:12px}
+.title{font-family:var(--title-font);font-size:20px;color:var(--text);margin:0}
+.heart{margin-left:auto;font-size:20px}
+.main{display:flex;gap:16px;align-items:flex-start;margin-top:12px}
+.face{width:160px;height:160px;border-radius:12px;background:#eee;object-fit:cover}
+.scene{flex:1}
+.char{font-family:var(--title-font);font-weight:600;color:#333;margin-bottom:6px}
+.story{min-height:180px;background:linear-gradient(180deg,#fff,#fffbff);padding:12px;border-radius:8px;color:#111;font-size:15px;line-height:1.6;white-space:pre-wrap}
+.opts{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.opt-btn{font-family:var(--title-font);padding:12px;border-radius:12px;border:none;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 18px rgba(255,105,180,0.16);text-align:left}
+.opt-btn:hover{transform:translateY(-3px)}
+.small{font-size:13px;color:#666;margin-top:8px}
+
+/* overlay to start music */
+#overlay{position:fixed;inset:0;background:rgba(10,10,10,0.88);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:pointer}
+#overlay .box{color:#fff;text-align:center;padding:20px;border-radius:12px}
+#overlay .box h2{margin:0 0 8px}
+#overlay .box p{margin:0 0 12px;color:#ddd}
+
+/* typewriter caret (optional) */
+.caret{display:inline-block;width:6px;height:18px;background:var(--text);vertical-align:middle;margin-left:6px;animation:blink .9s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media(max-width:720px){.main{flex-direction:column}.face{width:120px;height:120px}}
 </style>
 </head>
 <body>
 
-<div id="musicOverlay">Klik layar untuk mulai musik 🎵</div>
-
-<div id="game">
-  <div id="hearts">💖</div>
-  <img id="anyaFace" src="anya_neutral.png" alt="Anya">
-  <div id="storyText"></div>
-  <div id="options"></div>
+<!-- overlay click to enable audio -->
+<div id="overlay">
+  <div class="box">
+    <h2>MISI MASA LALU</h2>
+    <p>Kamu dikasih kesempatan balik ke masa lalu buat mendekati Anya. Klik layar untuk mulai musik & mulai misi.</p>
+    <button id="startBtn" style="padding:10px 14px;border-radius:10px;border:none;background:#ff69b4;color:#fff;font-weight:700;cursor:pointer">Mulai</button>
+  </div>
 </div>
 
-<audio id="gameMusic" src="cacani.mp3" loop></audio>
+<div class="container">
+  <div class="card" role="application" aria-live="polite">
+    <div class="header">
+      <h1 class="title">Kode Keras — Misi Masa Lalu</h1>
+      <div class="heart" id="heart">💖</div>
+    </div>
+
+    <div class="main">
+      <img id="anyaFace" class="face" src="anya_neutral.png" alt="Anya">
+      <div class="scene">
+        <div class="char" id="charName">Anya</div>
+        <div id="story" class="story"></div>
+        <div id="options" class="opts"></div>
+        <div class="small">Tip: pilih jawaban yang care / sopan biar Anya suka. Satu salah → Game Over.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<audio id="bgMusic" src="cacani.mp3" loop></audio>
 
 <script>
-const anyaFaces = { happy:'anya_happy.png', neutral:'anya_neutral.png', angry:'anya_angry.png', sad:'anya_sad.png' };
-let hearts = 1; // hanya 1 hati
-let storyIndex = 0;
-let musicStarted = false;
+/* ========== DATA: 10 scenes (Scene 1..10), setiap scene berisi `pre` lines (narasi+dialog)
+   dan `options` array: {text, result:[lines], correct(boolean), next: index OR 'GAMEOVER' OR 'END'}.
+   NOTE: sceneIndex will be 1..10 for readability.
+*/
 
-const story = [
-  { text:["Anya duduk sendiri di kelas.","Kamu: 'Hai, boleh duduk di sini?'","Anya tersenyum malu.","Kamu: 'Kamu kelihatan capek tadi.'","Anya: 'Ah… nggak apa-apa.'"],
-    options:[{text:"Aku bisa nemenin ngobrol biar nggak capek.", heartsChange:0,next:1},{text:"Aku balik aja ke teman-temanku.", heartsChange:-1,next:1}]},
-  { text:["Anya sedang memilih buku di perpustakaan.","Kamu: 'Buku itu bagus, aku suka juga.'","Anya tersenyum malu.","Kamu: 'Suka baca buku lain juga?'","Anya: 'Kadang, tapi aku suka ini.'"],
-    options:[{text:"Aku bisa bantu cariin buku seru.", heartsChange:0,next:2},{text:"Aku sih males ke perpustakaan, mending pulang.", heartsChange:-1,next:2}]},
-  { text:["Jam istirahat, berjalan di koridor.","Kamu: 'Mau ikut main bola?'","Anya terlihat ragu.","Kamu: 'Santai aja, main santai.'","Anya: 'Oke, aku ikut sebentar.'"],
-    options:[{text:"Seru kan main bareng teman-temanku?", heartsChange:0,next:3},{text:"Kenapa selalu sendirian sih?", heartsChange:-1,next:3}]},
-  { text:["Anya kesulitan soal matematika.","Kamu: 'Butuh bantuan? Aku jelasin.'","Anya: 'Boleh, aku bingung di soal terakhir.'","Kamu: 'Coba kita selesaikan bareng.'","Anya tersenyum lega."],
-    options:[{text:"Sama-sama, senang bisa bantu.", heartsChange:0,next:4},{text:"Kamu beneran nggak ngerti ya?", heartsChange:-1,next:4}]},
-  { text:["Anya memilih buku lain di rak.","Kamu: 'Buku itu bagus juga.'","Anya: 'Oh iya? Aku kira cuma aku yang suka.'","Kamu: 'Mau aku bantu cariin buku lain?'","Anya: 'Boleh, makasih.'"],
-    options:[{text:"Aku senang bisa bantu.", heartsChange:0,next:5},{text:"Aku sih males ikut ribet.", heartsChange:-1,next:5}]},
-  { text:["Guru meminta kalian kerja kelompok.","Kamu: 'Ayo kita kerjain bareng.'","Anya: 'Oke, tapi aku gugup.'","Kamu: 'Aku bantu, tenang.'","Anya tersenyum lebih percaya diri."],
-    options:[{text:"Kita pasti bisa selesai tepat waktu.", heartsChange:0,next:6},{text:"Kamu kerja aja, aku cuma lihat-lihat.", heartsChange:-1,next:6}]},
-  { text:["Sepulang sekolah, berjalan berdua.","Kamu: 'Mau aku antar pulang?'","Anya: 'Boleh, tapi jauh nggak apa-apa.'","Kamu: 'Santai aja, nggak jauh.'","Anya tersenyum malu."],
-    options:[{text:"Nanti kita bisa jalan lagi besok?", heartsChange:0,next:7},{text:"Aku buru-buru, maaf ya.", heartsChange:-1,next:7}]},
-  { text:["Mampir di toko snack.","Kamu: 'Aku traktir, pilih yang kamu suka.'","Anya: 'Serius? Makasih.'","Kamu: 'Senang lihat kamu senyum.'","Anya: tersenyum manis."],
-    options:[{text:"Aku senang kalau kamu senang.", heartsChange:0,next:8},{text:"Kamu beli sendiri aja, aku nggak mau.", heartsChange:-1,next:8}]},
-  { text:["Duduk di bangku taman.","Kamu: 'Hari ini seru banget, ya?'","Anya: 'Iya, aku senang jalan sama kamu.'","Kamu: 'Kamu selalu bikin aku senyum.'","Anya: 'Hahaha… kamu lucu.'"],
-    options:[{text:"Besok kita ketemu lagi?", heartsChange:0,next:9},{text:"Kamu terlalu cerewet, capek deh.", heartsChange:-1,next:9}]},
-  { text:["Hari mulai gelap, waktunya pulang.","Kamu: 'Aku antar sampai sini dulu ya.'","Anya tersenyum malu: 'Makasih, aku senang hari ini.'","Kamu: 'Besok kita ketemu lagi ya?'","Anya: 'Iya, aku tunggu.'"],
-    options:[{text:"Sampai besok, semoga harimu menyenangkan.", heartsChange:0,next:'END'},{text:"Yaudah, aku pulang duluan aja.", heartsChange:-1,next:'END'}]}
-];
+const scenes = {
+  1: {
+    pre: [
+      "Kamu bangun dan ngeri-ngeri sedap: ini kayak balik ke masa SMA.",
+      "Kelas rame, soundscape: bisik, tawa, suara HP. Di pojokan, ada cewek rambut soft-pink yang lagi doodle—Anya.",
+      "Anya menoleh, mata kalian bertemu, dia senyum kecil.",
+      "Anya: “Eh, kamu anak baru ya? Kok aku baru liat?”",
+      "Kamu: “Iya nih, agak nervous tapi excited.”"
+    ],
+    options: [
+      { text:"“Boleh nggak aku duduk di sini? Biar gampang kenalan.”",
+        result:[
+          "Anya: \"Boleh dong, hati-hati ya jangan ganggu catetanku hehe.\"",
+          "Kamu duduk, kalian mulai buka obrolan ringan soal kelas dan anime yang lagi hits.",
+          "Suasana hangat, dia beberapa kali senyum karena candaanmu."
+        ],
+        correct:true, next:2
+      },
+      { text:"“Males kenalan, mending aku sendiri aja.”",
+        result:[
+          "Anya: \"Oh yaudah, kalau gitu.\"",
+          "Dia balik lagi ngelanjutin catetannya, ekspresi dingin."
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"“Ssst… aku baru stalking IG kamu, followers-mu banyak banget.”",
+        result:[
+          "Anya: \"Eh? Kok stalking? Itu creepy banget loh.\"",
+          "Wajahnya langsung berubah bete."
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
 
-const anyaImg = document.getElementById('anyaFace');
-const storyTextDiv = document.getElementById('storyText');
-const optionsDiv = document.getElementById('options');
-const heartsDiv = document.getElementById('hearts');
-const gameMusic = document.getElementById('gameMusic');
-const musicOverlay = document.getElementById('musicOverlay');
+  2: {
+    pre:[
+      "Kalian mulai ngobrol santai—topik ngalor-ngidul: anime, snack favorit, dan kelas yang bikin bosen.",
+      "Anya: \"Kamu suka anime? Mana favoritmu?\"",
+      "Kamu: \"Iya, aku suka Spy x Family—keliatan polos tapi lucu.\""
+    ],
+    options:[
+      { text:"“Spy x Family! Anya favoritku juga—kita match!”",
+        result:[
+          "Anya: \"Ih serius? Jangan-jangan kamu ngefans beneran.\"",
+          "Kalian ketawa bareng, obrolan jadi lebih cair."
+        ],
+        correct:true, next:3
+      },
+      { text:"“Anime? Gue cuma nonton 5 menit aja kok.”",
+        result:[
+          "Anya: \"Wah, jadi bukan fans beneran ya…\"", "Dia keliatan agak mengecil hati."
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"“Anime? Itu buat bocah sih.”",
+        result:[
+          "Anya: \"Masa? Aku jujur tersinggung nih.\""
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
 
-function updateHearts(fade=false){
-  if(fade){
-    heartsDiv.style.opacity=0;
-    setTimeout(()=>{
-      heartsDiv.innerHTML = hearts>0?'💖':'💔';
-      heartsDiv.style.opacity=1;
-    },500);
-  } else {
-    heartsDiv.innerHTML = hearts>0?'💖':'💔';
+  3: {
+    pre:[
+      "Bel berbunyi sebentar, guru belum masuk. Ada PR matematika yang ninggal di papan.",
+      "Anya: \"Wah aku still stuck di nomor 3, pusing deh.\"",
+      "Kamu buka buku, ngeliatin soal, nafas panjang."
+    ],
+    options:[
+      { text:"\"Santai, aku jelasin step by step—kita bisa selesain bareng.\"",
+        result:[
+          "Kamu: \"Kita mulai dari definisi dulu...\"",
+          "Anya ngangguk, matanya fokus, kamu jelasin sabar sampai dia paham.",
+          "Anya: \"Wah jadi ngerti! Makasih ya, kamu keren.\""
+        ],
+        correct:true, next:4
+      },
+      { text:"\"Yah, susah sih. Tanya aja guru nggak papa.\"",
+        result:[
+          "Anya: \"Tapi kan nggak asik... Kita kan bisa ngerjain bareng?\""
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Nyontek aja besok, mudah kok.\"",
+        result:[
+          "Anya: \"Serius? Aku nggak nyaman kalo gitu.\""
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Lu lebay, itu gampang kok.\"",
+        result:[
+          "Anya: \"Eh jangan meremehkan aku dong.\""
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
+
+  4: {
+    pre:[
+      "Setelah PR beres, suasana santai. Kamu coba lempar jokes receh buat nge-break mood.",
+      "Kamu: \"Eh... tau nggak bedanya kamu sama sinyal?\"",
+      "Anya: \"Apa tuh?\""
+    ],
+    options:[
+      { text:"\"Sinyal suka hilang, tapi kamu bikin aku loss in thought.\" (gombal receh)",
+        result:[
+          "Anya ngelus dagu, geli: \"Aduh gombal banget, tapi lucu juga sih.\"",
+          "Obrolan berlanjut ke meme dan tiktok favorit—kalian ketawa bareng."
+        ],
+        correct:true, next:5
+      },
+      { text:"\"Nggak ada, semuanya sama aja kok.\"",
+        result:[
+          "Anya: \"Kok kamu pasif gitu, boring.\""
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Ntar gue bilang ke temen kalo kamu awkward.\"",
+        result:[
+          "Anya: \"Eh jangan ngatain aku gitu dong.\""
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
+
+  5: {
+    pre:[
+      "Waktu udah hampir pulang. Sesi kelas berakhir tapi suasana masih asik.",
+      "Anya beresin tas pelan. Dia ngelirik ke arahmu, ragu sedikit."
+    ],
+    options:[
+      { text:"\"Mau pulang bareng? Aku temenin sekalian mampir kantin.\"",
+        result:[
+          "Anya: \"Mau dong, makasih ya. Kalo gitu kita jalan bareng.\"",
+          "Kamu merasa jantung deg-degan, tapi bahagia."
+        ],
+        correct:true, next:6
+      },
+      { text:"\"Aku buru-buru, kamu pulang sendiri aja.\"",
+        result:[
+          "Anya: \"Oh yaudah…\" (senyum pudar)"
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Gue ada janji, sorry nggak bisa.\"",
+        result:[
+          "Anya: \"Kalau gitu yaudahlah.\""
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
+
+  /* Scenes 6..10: outside classroom (kantin, hujan, taman, lapangan, ending) */
+  6: {
+    pre:[
+      "Di gerbang sekolah kalian keluar, menuju kantin. Suasana perubahan: lebih riuh, pedagang jajan.",
+      "Anya: \"Aku jadi laper nih, pengen cemilan manis atau pedes?\"",
+      "Kamu: \"Terserah, rekomendasi dong.\""
+    ],
+    options:[
+      { text:"\"Seblak level sedang aja, biar nggak drama di mulut.\"",
+        result:[
+          "Anya: \"Wah kamu tau selera aku, keren.\"",
+          "Kalian pesan seblak, duduk di bangku panjang sambil ngobrol santai."
+        ],
+        correct:true, next:7
+      },
+      { text:"\"Beli es teh dulu gih, yang manis stabil.\"",
+        result:[
+          "Anya: \"Es teh juga bisa. Tapi aku lebih suka pedes kok.\""
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Gue laper tapi nggak mau beliin kamu.\"",
+        result:[
+          "Anya: \"Eh kok pelit sih?\""
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
+
+  7: {
+    pre:[
+      "Makan sambil ngobrol. Kalian bertukar cerita: film, mimpi kecil, dan makanan favorit.",
+      "Anya: \"Kamu tipe yang romantis nggak sih sebenernya?\"",
+      "Kamu: \"Tergantung sama siapa.\""
+    ],
+    options:[
+      { text:"\"Kalau sama kamu sih iya, aku bakal perhatian.\"",
+        result:[
+          "Anya: \"Aduh, baper nih. Tapi lucu juga.\"",
+          "Obrolan semakin cair, dia cerita hal kecil yang dia suka."
+        ],
+        correct:true, next:8
+      },
+      { text:"\"Romantis? Gue kayak ghost aja, nggak keliatan.\"",
+        result:[
+          "Anya: \"Ghost? Apa maksudnya?\""
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Gue romantis ke makanan, bukan orang.\"",
+        result:[
+          "Anya: \"Wah kamu aneh.\""
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
+
+  8: {
+    pre:[
+      "Tiba-tiba langit mendung, hujan turun deras. Semua pada lari cari tempat teduh.",
+      "Anya kelihatan panik: \"Aku nggak bawa payung!\"",
+      "Kamu: \"Tenang, gue ambil payung di kantin.\""
+    ],
+    options:[
+      { text:"\"Ayo pakai payung gue, kita berdua aja.\"",
+        result:[
+          "Kamu membuka payung, kalian berdempetan sedikit, rintik hujan jadi latar romantis.",
+          "Anya: \"Sempit tapi hangat ya…\" (tersipu)."
+        ],
+        correct:true, next:9
+      },
+      { text:"\"Lari aja, biar basah sekalian dramatis.\"",
+        result:[
+          "Anya: \"Jadi sakit ntar dong, serius gak sih?\""
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Tunggu aja, pasti cepat reda kok.\"",
+        result:[
+          "Anya: \"Tapi aku kebasahan nanti...\""
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
+
+  9: {
+    pre:[
+      "Hujan reda, udara segar. Kalian jalan ke taman sekolah, ada bau tanah basah yang enak.",
+      "Anya: \"Makasih ya udah nemenin dari siang sampai sekarang.\"",
+      "Kamu: \"Sama-sama, aku juga seneng bisa ngobrol sama kamu.\""
+    ],
+    options:[
+      { text:"\"Boleh gak aku jemput kamu besok? Biar kita bisa nongkrong lagi.\"",
+        result:[
+          "Anya: \"Boleh banget! Aku jadi nggak sabar besoknya.\"",
+          "Ada rasa nyaman di antara kalian yang makin nyata."
+        ],
+        correct:true, next:10
+      },
+      { text:"\"Nanti malah capek, mending kita gak sering ketemu.\"",
+        result:[
+          "Anya: \"Kenapa sih kamu dingin banget?\""
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Aku cuma nemenin karena lagi gabut.\"",
+        result:[
+          "Anya: \"Jadi semua ini cuma iseng?\""
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
+  },
+
+  10: {
+    pre:[
+      "Senja turun, langit jingga. Kalian duduk berdua di bangku taman, suasana hening tapi hangat.",
+      "Anya menatapmu serius: \"Jujur deh, kamu suka aku nggak?\"",
+      "Kamu merasa detak jantung kencang — ini momen."
+    ],
+    options:[
+      { text:"\"Aku suka banget sama kamu, Anya. Mau aku jagain tiap hari?\"",
+        result:[
+          "Anya tersenyum, matanya berkaca: \"Hehe… iya. Aku mau juga.\"",
+          "Kamu merasakan lega yang dalam — misi masa lalu sukses."
+        ],
+        correct:true, next:'END'
+      },
+      { text:"\"Ah nggak lah, cuma bercanda aja.\"",
+        result:[
+          "Anya: \"Apa? Jadi semua ini mainan kamu?\"",
+          "Wajahnya sedih, senyum musnah."
+        ],
+        correct:false, next:'GAMEOVER'
+      },
+      { text:"\"Kita jadi temen aja dulu deh, santai.\"",
+        result:[
+          "Anya: \"Oh... oke kalau kamu mau gitu.\"",
+          "Hati kamu sedikit berat, bukan ending sempurna."
+        ],
+        correct:false, next:'GAMEOVER'
+      }
+    ]
   }
+}; // end scenes
+
+/* ========== APP LOGIC ========== */
+const storyEl = document.getElementById('story');
+const optsEl = document.getElementById('options');
+const charNameEl = document.getElementById('charName');
+const faceEl = document.getElementById('anyaFace');
+const heartEl = document.getElementById('heart');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+const bgMusic = document.getElementById('bgMusic');
+
+let currentScene = 1;
+let busy = false;
+
+/* helper: escape html */
+function esc(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+/* typewriter: lines array -> combined with blank lines between; character by character */
+function typeWriter(lines, cb){
+  busy = true;
+  const text = lines.join('\n\n');
+  let i=0;
+  storyEl.innerHTML = '';
+  function step(){
+    i++;
+    storyEl.innerHTML = esc(text.slice(0,i)).replace(/\n/g,'<br>');
+    if(i < text.length) setTimeout(step, 24);
+    else { busy = false; if(cb) cb(); }
+  }
+  step();
 }
 
-function setAnyaFace(expr){ anyaImg.src = anyaFaces[expr]; }
-function shuffleOptions(options){ let arr = options.slice(); for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-function typeWriter(text, i=0, callback){
-  if(i<text.length){
-    storyTextDiv.innerHTML = text.substring(0,i+1);
-    setTimeout(()=>typeWriter(text,i+1,callback),40);
-  } else if(callback) callback();
+/* shuffle options to randomize positions */
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
 }
 
-musicOverlay.addEventListener('click', ()=>{
-  gameMusic.play().catch(()=>{});
-  musicStarted = true;
-  musicOverlay.style.display='none';
-});
+/* set face helper (expects file names provided by you) */
+function setFace(state){
+  const map = { neutral:'anya_neutral.png', happy:'anya_happy.png', angry:'anya_angry.png', sad:'anya_sad.png' };
+  const src = map[state] || map.neutral;
+  faceEl.src = src;
+}
 
-function renderStory(){
-  if(storyIndex==='END'){
-    const endingText = hearts>0 ? "Anya tersenyum manis: 'Senang banget bisa jalan sama kamu hari ini 💖'" : "Anya terlihat kecewa: 'Kayaknya kamu kurang perhatian… 😢'";
-    typeWriter(endingText);
-    optionsDiv.innerHTML='';
-    setAnyaFace(hearts>0?'happy':'sad');
-    return;
-  }
-  const current = story[storyIndex];
-  setAnyaFace('neutral');
-  let fullText = current.text.join("\n");
-  typeWriter(fullText,0,()=>{
-    const shuffled = shuffleOptions(current.options);
-    optionsDiv.innerHTML = '';
-    shuffled.forEach((opt)=>{
+/* render scene by index (1..10) */
+function renderScene(index){
+  currentScene = index;
+  // reset face and heart (heart stays intact unless gameover)
+  setFace('neutral');
+  const sc = scenes[index];
+  if(!sc){ console.error('no scene', index); return; }
+  charNameEl.textContent = 'Anya';
+  optsEl.innerHTML = '';
+  typeWriter(sc.pre, ()=> {
+    // build choices (shuffle)
+    const choices = shuffle(sc.options.map(o=>Object.assign({},o)));
+    choices.forEach(choice=>{
       const btn = document.createElement('button');
-      btn.classList.add('optionBtn');
-      btn.innerText = opt.text;
-      btn.onclick = ()=>{
-        hearts += opt.heartsChange;
-        if(opt.heartsChange<0) setAnyaFace('angry'); else setAnyaFace('happy');
-        hearts = hearts>0?1:0;
-        updateHearts(opt.heartsChange<0); // fade jika salah
-        storyIndex = opt.next;
-        renderStory();
+      btn.className = 'opt-btn';
+      btn.textContent = choice.text;
+      btn.onclick = ()=> {
+        if(busy) return;
+        // show result lines
+        if(choice.correct) setFace('happy'); else setFace('angry');
+        optsEl.innerHTML = '';
+        typeWriter(choice.result, ()=> {
+          // next step
+          if(choice.next === 'GAMEOVER'){
+            doGameOver();
+          } else if(choice.next === 'END'){
+            doEnding();
+          } else {
+            // numeric next scene index:
+            setTimeout(()=> renderScene(choice.next), 500);
+          }
+        });
       };
-      optionsDiv.appendChild(btn);
+      optsEl.appendChild(btn);
     });
   });
 }
 
-updateHearts();
-renderStory();
-</script>
+/* Game Over */
+function doGameOver(){
+  heartEl.textContent = '💔';
+  setFace('sad');
+  const lines = ["GAME OVER — Anya kecewa 😢", "Kalau mau coba lagi, tekan Mulai Ulang."];
+  optsEl.innerHTML = '';
+  typeWriter(lines, ()=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = 'Mulai Ulang';
+    btn.onclick = ()=> restartGame();
+    optsEl.appendChild(btn);
+  });
+}
 
+/* Ending (success) */
+function doEnding(){
+  heartEl.textContent = '💖';
+  setFace('happy');
+  const lines = ["ENDING — Happy Ending 💖", "Anya: \"Hehe… aku mau juga. Terima kasih sudah jadi teman yang baik.\"", "Kamu berhasil!"];
+  optsEl.innerHTML = '';
+  typeWriter(lines, ()=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = 'Main Lagi';
+    btn.onclick = ()=> restartGame();
+    optsEl.appendChild(btn);
+  });
+}
+
+/* restart */
+function restartGame(){
+  heartEl.textContent = '💖';
+  setFace('neutral');
+  renderScene(1);
+}
+
+/* overlay start: enable music & start scene 1 */
+function startGame(){
+  overlay.style.display = 'none';
+  bgMusic.play().catch(()=>{ /* ignore autoplay block */ });
+  bgMusic.volume = 0.85;
+  renderScene(1);
+}
+
+/* attach overlay handlers */
+startBtn.addEventListener('click', startGame);
+overlay.addEventListener('click', (e)=> { if(e.target === overlay) startGame(); });
+
+/* init: show neutral face & no text until start */
+setFace('neutral');
+storyEl.textContent = "Klik 'Mulai' untuk memulai misi masa lalu.";
+optsEl.innerHTML = '';
+</script>
 </body>
 </html>
