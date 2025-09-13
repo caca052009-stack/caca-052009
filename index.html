@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Spaceman - Client Only (Admin + Users)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{--bg:#071024;--panel:#0f1724;--accent:#ffb86b;--muted:#9aa6b2;}
+    body{font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,var(--bg),#001);color:#fff;margin:0;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px;}
+    .wrap{width:100%;max-width:980px;}
+    .card{background:linear-gradient(180deg,#071827,#02121a);padding:14px;border-radius:10px;margin-bottom:12px;box-shadow:0 6px 20px rgba(0,0,0,0.6);}
+    h1{margin:0 0 8px 0;font-size:20px;color:var(--accent)}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .balance{background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;font-weight:700}
+    .btn{background:#0ea5a4;border:none;padding:8px 12px;border-radius:8px;color:#001;font-weight:800;cursor:pointer}
+    input,select{padding:8px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:#fff}
+    #gameArea{height:420px;border-radius:10px;position:relative;overflow:hidden;background:linear-gradient(to top,#00121b,#072033);display:flex;align-items:flex-end;justify-content:center}
+    #rocket{font-size:64px;position:relative;bottom:12px;transition:bottom 120ms linear;}
+    #mult{position:absolute;left:16px;top:16px;font-size:24px;color:#9effc7;font-weight:800}
+    #countdown{position:absolute;right:16px;top:16px;color:yellow;font-weight:900}
+    #historyBar{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    .hist{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);font-weight:700}
+    .low{background:rgba(255,90,90,0.12);color:#ff9a9a}
+    .mid{background:rgba(255,215,125,0.08);color:#ffd27f}
+    .high{background:rgba(120,255,180,0.06);color:#9effc7}
+    /* auth modal */
+    #auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:60}
+    #auth .box{width:100%;max-width:360px;background:linear-gradient(180deg,#071827,#02121a);padding:16px;border-radius:10px}
+    /* deposit/withdraw modal */
+    #depositWithdrawModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:60}
+    #depositWithdrawModal .box{width:100%;max-width:400px;background:linear-gradient(180deg,#071827,#02121a);padding:16px;border-radius:10px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .small{font-size:13px;color:var(--muted)}
+    .pending{color:#ffb86b}
+    .approved{color:#9effc7}
+    .rejected{color:#ff6b6b}
+    .transaction-history {max-height: 200px; overflow-y: auto; margin-top: 12px;}
+    .notification {position:fixed;top:20px;right:20px;background:var(--panel);padding:12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.4);z-index:100;display:none;}
+    .leaderboard {max-height: 300px; overflow-y: auto;}
+    @media (max-width:640px){ #rocket{font-size:44px} #gameArea{height:320px} }
+  </style>
+</head>
+<body>
+  <div class="notification" id="notification"></div>
+  
+  <div class="wrap">
+    <div class="card" id="topBar">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><h1>🚀 spacmen99 × 0831-8587-5124</h1><div class="small">nomor cs diatas jika mau desposit dan wd dll,silakan hubungin nomor diatas</div></div>
+        <div class="row">
+          <div class="balance" id="displayBalance">Rp 0</div>
+          <button class="btn" id="btnDeposit" style="display:none">Deposit</button>
+          <button class="btn" id="btnWithdraw" style="display:none">Withdraw</button>
+          <button class="btn" id="btnProfile" style="display:none">Profile</button>
+          <button class="btn" id="btnLogout" style="display:none">Logout</button>
+          <button class="btn" id="btnSync" style="display:none">Sync</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="gameArea">
+        <div id="mult">x1.00</div>
+        <div id="countdown"></div>
+        <div id="rocket">🚀</div>
+      </div>
+
+      <div style="margin-top:12px" class="row">
+        <input type="number" id="betInput" value="1000" min="100" step="100">
+        <input type="number" id="autoInput" placeholder="Auto cashout x (ex:2.5)" step="0.1" min="1.1">
+        <button class="btn" id="btnPlace">Taruhan</button>
+        <button class="btn" id="btnHalf">Tarik 50%</button>
+        <button class="btn" id="btnFull">Tarik Full</button>
+        <div class="small" id="roundState">Ronde: -</div>
+      </div>
+
+      <div id="historyBar" class="small"></div>
+    </div>
+
+    <div class="card">
+      <h3>🏆 Leaderboard</h3>
+      <div class="leaderboard">
+        <table id="leaderboardTable">
+          <thead><tr><th>Peringkat</th><th>Nama</th><th>Saldo</th><th>Profit</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="adminPanel" style="display:none">
+      <h3>Admin Panel (adminfeb)</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input id="adminUser" placeholder="username">
+        <input id="adminAmount" placeholder="amount" type="number">
+        <button class="btn" id="btnAddBalance">Tambah Saldo</button>
+        <button class="btn" id="btnResetAll">Reset Semua</button>
+        <button class="btn" id="btnSaveToCloud">Simpan ke Cloud</button>
+        <button class="btn" id="btnLoadFromCloud">Muat dari Cloud</button>
+      </div>
+      
+      <h4 style="margin-top:12px">Pending Transactions</h4>
+      <div class="transaction-history">
+        <table id="pendingTransactionsTable">
+          <thead><tr><th>User</th><th>Type</th><th>Amount</th><th>Action</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      
+      <h4 style="margin-top:12px">Users</h4>
+      <table id="usersTable"><thead><tr><th>User</th><th>Saldo</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Auth modal -->
+  <div id="auth">
+    <div class="box">
+      <h2>Login / Register</h2>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input id="inputUser" placeholder="username">
+        <input id="inputPass" placeholder="password" type="password">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="btnLogin">Login</button>
+        <button class="btn" id="btnRegister">Register</button>
+      </div>
+      <p class="small" style="margin-top:8px">cs admin: <b>untuk deposit/wd silakan hubungin admin caca</b> / <b>email:xzrbrian@gmail.com -
+     nomor wa:0831-8587-5124</b></p>
+      <p id="authMsg" class="small"></p>
+    </div>
+  </div>
+
+  <!-- Deposit/Withdraw Modal -->
+  <div id="depositWithdrawModal">
+    <div class="box">
+      <h2 id="dwTitle">Deposit</h2>
+      <div style="margin-bottom:12px">
+        <input type="number" id="dwAmount" placeholder="Jumlah" min="10000" step="10000">
+      </div>
+      <div style="margin-bottom:12px">
+        <input type="text" id="dwMethod" placeholder="Metode (BCA/BRI/OVO/etc)">
+      </div>
+      <div style="margin-bottom:12px">
+        <input type="text" id="dwAccount" placeholder="NOMOR PENGIRIM">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="btnSubmitDW">Submit</button>
+        <button class="btn" style="background:#6b7280" id="btnCancelDW">Batal</button>
+      </div>
+      <p class="small" style="margin-top:8px">dana/gopay/pulsa - 0831-7751-5605 setelah melakukan transaksi silakan kirim bukti tf ke nomor wa admin itu nomor wa 0831-8587-5124 - makasihhh yap</p>
+      <div id="dwMsg" class="small"></div>
+      
+      <h3 style="margin-top:16px">Riwayat Transaksi</h3>
+      <div class="transaction-history">
+        <table id="transactionHistoryTable">
+          <thead><tr><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+  Client-only Spaceman dengan Cloud Sync
+  - Data disimpan di GitHub Gist untuk sinkronisasi antar perangkat
+  - Fitur leaderboard untuk kompetisi
+  - Notifikasi untuk transaksi dan event penting
+*/
+
+// Utilities
+const $ = sel => document.querySelector(sel);
+const format = n => Number(n).toLocaleString();
+
+// Konfigurasi GitHub Gist - Ganti dengan informasi Gist Anda
+const GITHUB_USERNAME = 'caca052009';
+const GIST_ID = 'https://caca052009-stack.github.io/caca-052009/'; // Ganti dengan Gist ID yang nyata
+const GIST_FILENAME = 'caca05200';
+const GITHUB_TOKEN = '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'; // Token dengan scope gist
+
+// LocalStorage keys
+const LS_USERS = 'sp_users_v2';
+const LS_HISTORY = 'sp_history_v2';
+const LS_CURRENT = 'sp_current_user_v2';
+const LS_TRANSACTIONS = 'sp_transactions_v2';
+const LS_LAST_SYNC = 'sp_last_sync_v2';
+
+// Default data setup
+function loadUsers(){
+  const raw = localStorage.getItem(LS_USERS);
+  if(!raw){
+    const defaultUsers = { 
+      'adminfeb': { password: 'admin', balance: 1000000, isAdmin: true, profit: 0 },
+      'demo': { password: 'demo', balance: 10000, isAdmin: false, profit: 0 }
+    };
+    localStorage.setItem(LS_USERS, JSON.stringify(defaultUsers));
+    return defaultUsers;
+  }
+  return JSON.parse(raw);
+}
+function saveUsers(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); }
+
+function loadHistory(){ return JSON.parse(localStorage.getItem(LS_HISTORY) || '[]'); }
+function saveHistory(h){ localStorage.setItem(LS_HISTORY, JSON.stringify(h)); }
+
+function loadTransactions(){ return JSON.parse(localStorage.getItem(LS_TRANSACTIONS) || '[]'); }
+function saveTransactions(t){ localStorage.setItem(LS_TRANSACTIONS, JSON.stringify(t)); }
+
+let users = loadUsers();
+let history = loadHistory();
+let transactions = loadTransactions();
+let currentUser = localStorage.getItem(LS_CURRENT) || null;
+let currentDWType = ''; // 'deposit' or 'withdraw'
+
+// Fungsi untuk menampilkan notifikasi
+function showNotification(message, duration = 3000) {
+  const notification = $('#notification');
+  notification.innerText = message;
+  notification.style.display = 'block';
+  
+  setTimeout(() => {
+    notification.style.display = 'none';
+  }, duration);
+}
+
+// Fungsi untuk sinkronisasi dengan GitHub Gist
+async function syncWithGitHub() {
+  if (!GITHUB_TOKEN || GITHUB_TOKEN === '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') {
+    showNotification('Error: Token GitHub belum dikonfigurasi', 5000);
+    return false;
+  }
+  
+  try {
+    // Coba mengambil data dari Gist
+    const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (!response.ok) throw new Error('Gagal mengambil data dari cloud');
+    
+    const gistData = await response.json();
+    const cloudData = JSON.parse(gistData.files[GIST_FILENAME].content);
+    
+    // Gabungkan data lokal dengan data cloud
+    const mergedData = mergeData(cloudData);
+    
+    // Simpan data yang sudah digabungkan
+    saveUsers(mergedData.users);
+    saveTransactions(mergedData.transactions);
+    
+    // Perbarui variabel lokal
+    users = mergedData.users;
+    transactions = mergedData.transactions;
+    
+    // Simpan kembali ke cloud
+    await saveDataToGist(mergedData);
+    
+    localStorage.setItem(LS_LAST_SYNC, new Date().toISOString());
+    showNotification('Data berhasil disinkronisasi dengan cloud');
+    renderAuthState();
+    renderLeaderboard();
+    return true;
+  } catch (error) {
+    console.error('Error syncing with GitHub:', error);
+    showNotification('Gagal sinkronisasi dengan cloud: ' + error.message, 5000);
+    return false;
+  }
+}
+
+// Fungsi untuk menggabungkan data lokal dan cloud
+function mergeData(cloudData) {
+  const localUsers = loadUsers();
+  const localTransactions = loadTransactions();
+  
+  // Gabungkan pengguna - utamakan data cloud tetapi pertahankan perubahan lokal untuk pengguna yang sedang login
+  const mergedUsers = { ...cloudData.users };
+  for (const username in localUsers) {
+    if (username !== currentUser || !mergedUsers[username]) {
+      mergedUsers[username] = localUsers[username];
+    }
+  }
+  
+  // Gabungkan transaksi - gabungkan dan hapus duplikat
+  const allTransactions = [...localTransactions, ...cloudData.transactions];
+  const uniqueTransactions = allTransactions.filter((t, index, self) => 
+    index === self.findIndex(tr => tr.id === t.id)
+  );
+  
+  return {
+    users: mergedUsers,
+    transactions: uniqueTransactions.sort((a, b) => b.id - a.id) // Urutkan berdasarkan ID terbaru
+  };
+}
+
+// Fungsi untuk menyimpan data ke Gist
+async function saveDataToGist(data) {
+  try {
+    const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(data, null, 2)
+          }
+        }
+      })
+    });
+    
+    if (!response.ok) throw new Error('Gagal menyimpan data ke cloud');
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving to Gist:', error);
+    throw error;
+  }
+}
+
+// Fungsi untuk mengunduh data dari Gist
+async function loadFromGitHub() {
+  try {
+    const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (!response.ok) throw new Error('Gagal mengambil data dari cloud');
+    
+    const gistData = await response.json();
+    const cloudData = JSON.parse(gistData.files[GIST_FILENAME].content);
+    
+    // Simpan data dari cloud ke localStorage
+    localStorage.setItem(LS_USERS, JSON.stringify(cloudData.users));
+    localStorage.setItem(LS_TRANSACTIONS, JSON.stringify(cloudData.transactions));
+    
+    // Perbarui variabel lokal
+    users = cloudData.users;
+    transactions = cloudData.transactions;
+    
+    localStorage.setItem(LS_LAST_SYNC, new Date().toISOString());
+    showNotification('Data berhasil dimuat dari cloud');
+    renderAuthState();
+    renderLeaderboard();
+    return true;
+  } catch (error) {
+    console.error('Error loading from GitHub:', error);
+    showNotification('Gagal memuat data dari cloud: ' + error.message, 5000);
+    return false;
+  }
+}
+
+// Game state
+let gameState = { bet: 0, multiplier: 1, isRunning: false, rocketY: 0, autoCashout: null };
+let gameInterval = null;
+
+// UI rendering
+function renderAuthState(){
+  const auth = $('#auth');
+  const btnDeposit = $('#btnDeposit');
+  const btnWithdraw = $('#btnWithdraw');
+  const btnProfile = $('#btnProfile');
+  const btnLogout = $('#btnLogout');
+  const btnSync = $('#btnSync');
+  const adminPanel = $('#adminPanel');
+  
+  if(currentUser){
+    auth.style.display = 'none';
+    btnDeposit.style.display = 'block';
+    btnWithdraw.style.display = 'block';
+    btnProfile.style.display = 'block';
+    btnLogout.style.display = 'block';
+    btnSync.style.display = 'block';
+    
+    $('#displayBalance').textContent = `Rp ${format(users[currentUser].balance)}`;
+    
+    if(users[currentUser].isAdmin){
+      adminPanel.style.display = 'block';
+      renderAdminPanel();
+    } else {
+      adminPanel.style.display = 'none';
+    }
+  } else {
+    auth.style.display = 'flex';
+    btnDeposit.style.display = 'none';
+    btnWithdraw.style.display = 'none';
+    btnProfile.style.display = 'none';
+    btnLogout.style.display = 'none';
+    btnSync.style.display = 'none';
+    adminPanel.style.display = 'none';
+  }
+}
+
+function renderHistory(){
+  const bar = $('#historyBar');
+  bar.innerHTML = '';
+  
+  // Tampilkan 10 riwayat terbaru
+  const recentHistory = history.slice(-10).reverse();
+  
+  recentHistory.forEach(h => {
+    const el = document.createElement('div');
+    el.className = `hist ${h.multiplier < 2 ? 'low' : h.multiplier < 5 ? 'mid' : 'high'}`;
+    el.textContent = `x${h.multiplier.toFixed(2)}`;
+    bar.appendChild(el);
+  });
+}
+
+function renderLeaderboard(){
+  const table = $('#leaderboardTable tbody');
+  table.innerHTML = '';
+  
+  // Siapkan data leaderboard
+  const leaderboardData = Object.entries(users)
+    .filter(([username, data]) => !data.isAdmin)
+    .map(([username, data]) => ({
+      username,
+      balance: data.balance,
+      profit: data.profit
+    }))
+    .sort((a, b) => b.balance - a.balance)
+    .slice(0, 10);
+  
+  // Isi tabel
+  leaderboardData.forEach((user, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${user.username}</td>
+      <td>Rp ${format(user.balance)}</td>
+      <td class="${user.profit >= 0 ? 'approved' : 'rejected'}">${user.profit >= 0 ? '+' : ''}${format(user.profit)}</td>
+    `;
+    table.appendChild(row);
+  });
+}
+
+function renderAdminPanel(){
+  // Render pending transactions
+  const pendingTable = $('#pendingTransactionsTable tbody');
+  pendingTable.innerHTML = '';
+  
+  const pendingTransactions = transactions.filter(t => t.status === 'pending');
+  pendingTransactions.forEach(t => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${t.username}</td>
+      <td>${t.type}</td>
+      <td>Rp ${format(t.amount)}</td>
+      <td>
+        <button class="btn" onclick="approveTransaction(${t.id})">Approve</button>
+        <button class="btn" style="background:#ef4444" onclick="rejectTransaction(${t.id})">Reject</button>
+      </td>
+    `;
+    pendingTable.appendChild(row);
+  });
+  
+  // Render users table
+  const usersTable = $('#usersTable tbody');
+  usersTable.innerHTML = '';
+  
+  Object.entries(users).forEach(([username, data]) => {
+    if (username === 'adminfeb') return; // Skip admin
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${username}</td>
+      <td>Rp ${format(data.balance)}</td>
+      <td>
+        <button class="btn" onclick="resetUser('${username}')">Reset</button>
+      </td>
+    `;
+    usersTable.appendChild(row);
+  });
+}
+
+function renderTransactionHistory(){
+  const table = $('#transactionHistoryTable tbody');
+  table.innerHTML = '';
+  
+  const userTransactions = transactions
+    .filter(t => t.username === currentUser)
+    .sort((a, b) => b.id - a.id)
+    .slice(0, 10);
+  
+  userTransactions.forEach(t => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${t.type}</td>
+      <td>Rp ${format(t.amount)}</td>
+      <td class="${t.status === 'approved' ? 'approved' : t.status === 'rejected' ? 'rejected' : 'pending'}">${t.status}</td>
+      <td>${new Date(t.date).toLocaleDateString()}</td>
+    `;
+    table.appendChild(row);
+  });
+}
+
+// Game functions
+function startGame(){
+  if(gameState.isRunning) return;
+  
+  const betAmount = parseInt($('#betInput').value);
+  const user = users[currentUser];
+  
+  if(betAmount < 100){
+    showNotification('Taruhan minimal Rp 100');
+    return;
+  }
+  
+  if(betAmount > user.balance){
+    showNotification('Saldo tidak cukup');
+    return;
+  }
+  
+  // Kurangi saldo
+  user.balance -= betAmount;
+  saveUsers(users);
+  $('#displayBalance').textContent = `Rp ${format(user.balance)}`;
+  
+  // Set state game
+  gameState = {
+    bet: betAmount,
+    multiplier: 1,
+    isRunning: true,
+    rocketY: 0,
+    autoCashout: parseFloat($('#autoInput').value) || null
+  };
+  
+  $('#btnPlace').disabled = true;
+  $('#roundState').textContent = 'Ronde: Berjalan';
+  
+  // Mulai animasi roket
+  const rocket = $('#rocket');
+  rocket.style.bottom = '12px';
+  
+  // Mulai interval game
+  gameInterval = setInterval(updateGame, 100);
+}
+
+function updateGame(){
+  i
